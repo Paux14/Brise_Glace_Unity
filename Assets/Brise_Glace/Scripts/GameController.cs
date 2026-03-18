@@ -1,45 +1,35 @@
 using UnityEngine;
 using TMPro;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Linq;
 
 public class GameController : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI questionDisplay;
+    [Header("References UI")]
+    [SerializeField] private TextMeshProUGUI questionText;
 
     private void Start()
     {
+        // On affiche une premiere question au chargement de la scene
         DisplayNextQuestion();
     }
 
     public void DisplayNextQuestion()
     {
-        if (GameManager.Instance.RawQuestions.Count == 0) return;
-
-        int randomIndex = Random.Range(0, GameManager.Instance.RawQuestions.Count);
-        string selectedQuestion = GameManager.Instance.RawQuestions[randomIndex];
-
-        string formattedQuestion = ParseQuestionTags(selectedQuestion);
-
-        questionDisplay.text = formattedQuestion;
-    }
-
-    private string ParseQuestionTags(string rawText)
-    {
-        string result = rawText;
-
-        List<string> shuffledPlayers = GameManager.Instance.Players.OrderBy(x => Random.value).ToList();
-        int playerIndex = 0;
-
-        Regex regex = new Regex(Regex.Escape("{Joueur}"));
-
-        while (result.Contains("{Joueur}") && playerIndex < shuffledPlayers.Count)
+        // Securite : on verifie si la liste de questions n est pas vide
+        if (GameManager.Instance.RawQuestions.Count == 0)
         {
-            result = regex.Replace(result, shuffledPlayers[playerIndex], 1);
-            playerIndex++;
+            Debug.LogWarning("La liste de questions est vide.");
+            return;
         }
 
-        return result;
+        // 1. Tirage aleatoire d un index dans la liste brute
+        int randomIndex = Random.Range(0, GameManager.Instance.RawQuestions.Count);
+        string rawLine = GameManager.Instance.RawQuestions[randomIndex];
+
+        // 2. On demande au GameManager de remplacer les balises {joueur}
+        // La logique de traitement est centralisee dans le GameManager
+        string processedQuestion = GameManager.Instance.GetProcessedQuestion(rawLine);
+
+        // 3. Mise a jour du composant texte
+        questionText.text = processedQuestion;
     }
 }

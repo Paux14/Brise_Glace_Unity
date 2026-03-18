@@ -1,53 +1,60 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class MenuController : MonoBehaviour
 {
+    [Header("References UI")]
     [SerializeField] private TMP_InputField nameInput;
-    [SerializeField] private TextMeshProUGUI playerListDisplay;
+    
+    [Header("Parametres Prefab")]
+    [SerializeField] private GameObject playerTagPrefab; // Le prefab du joueur
+    [SerializeField] private Transform contentContainer; // Le parent (ex: un Vertical Layout Group)
+
+    // Liste locale pour gerer les objets UI cree (utile pour la suppression)
+    [SerializeField] private List<GameObject> instantiatedTags = new List<GameObject>();
 
     public void AddPlayer()
     {
-        // Nettoyage des espaces avant et apres la saisie
         string newName = nameInput.text.Trim();
 
-        // Verification de validite et d unicite
         if (!string.IsNullOrWhiteSpace(newName) && !GameManager.Instance.Players.Contains(newName))
         {
+            // 1. Ajouter la donnee au GameManager
             GameManager.Instance.Players.Add(newName);
-            UpdatePlayerListUI();
 
-            // Cette ligne reinitialise le champ textuel
+            // 2. Creer le visuel (Instanciation)
+            CreatePlayerTag(newName);
+
+            // 3. Reset de l input
             nameInput.text = "";
-
-            // Cette ligne force la selection du champ texte
-            // Cela permet denchainer la frappe au clavier sans recliquer sur l input
             nameInput.ActivateInputField();
         }
     }
 
-    private void UpdatePlayerListUI()
+    private void CreatePlayerTag(string playerName)
     {
-        if (GameManager.Instance.Players.Count == 0)
+        // On cree l objet dans le container
+        GameObject newTag = Instantiate(playerTagPrefab, contentContainer);
+        
+        // On recupere le texte dans lenfant du prefab pour changer le nom
+        // Methode : GetComponentInChildren cherche le premier TMP trouve
+        TextMeshProUGUI textComp = newTag.GetComponentInChildren<TextMeshProUGUI>();
+        
+        if (textComp != null)
         {
-            playerListDisplay.text = "Aucun joueur";
-            return;
+            textComp.text = playerName;
         }
 
-        // Le caractere \n cree un saut de ligne pour l affichage vertical
-        playerListDisplay.text = "Joueurs inscrits :\n- " + string.Join("\n- ", GameManager.Instance.Players);
+        instantiatedTags.Add(newTag);
     }
 
     public void StartGame()
     {
-        if (GameManager.Instance.Players.Count >= 2 && GameManager.Instance.RawQuestions.Count > 0)
+        if (GameManager.Instance.Players.Count >= 2)
         {
             SceneManager.LoadScene("GameScene");
-        }
-        else
-        {
-            Debug.LogWarning("Il faut au minimum 2 joueurs pour lancer la partie.");
         }
     }
 }
