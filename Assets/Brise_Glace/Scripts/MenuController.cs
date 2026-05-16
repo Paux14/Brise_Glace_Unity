@@ -1,60 +1,98 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 
 public class MenuController : MonoBehaviour
 {
-    [Header("References UI")]
     [SerializeField] private TMP_InputField nameInput;
-    
-    [Header("Parametres Prefab")]
-    [SerializeField] private GameObject playerTagPrefab; // Le prefab du joueur
-    [SerializeField] private Transform contentContainer; // Le parent (ex: un Vertical Layout Group)
+<<<<<<< Updated upstream
+    [SerializeField] private TextMeshProUGUI playerListDisplay;
+=======
 
-    // Liste locale pour gerer les objets UI cree (utile pour la suppression)
+    [Header("Parametres Prefab")]
+    [SerializeField] private GameObject playerTagPrefab;
+    [SerializeField] private Transform contentContainer;
+
     [SerializeField] private List<GameObject> instantiatedTags = new List<GameObject>();
+>>>>>>> Stashed changes
 
     public void AddPlayer()
     {
+        // Nettoyage des espaces avant et apres la saisie
         string newName = nameInput.text.Trim();
 
+        // Verification de validite et d unicite
         if (!string.IsNullOrWhiteSpace(newName) && !GameManager.Instance.Players.Contains(newName))
         {
-            // 1. Ajouter la donnee au GameManager
             GameManager.Instance.Players.Add(newName);
+<<<<<<< Updated upstream
+            UpdatePlayerListUI();
 
-            // 2. Creer le visuel (Instanciation)
+            // Cette ligne reinitialise le champ textuel
+=======
             CreatePlayerTag(newName);
 
-            // 3. Reset de l input
+>>>>>>> Stashed changes
             nameInput.text = "";
+
+            // Cette ligne force la selection du champ texte
+            // Cela permet denchainer la frappe au clavier sans recliquer sur l input
             nameInput.ActivateInputField();
         }
     }
 
-    private void CreatePlayerTag(string playerName)
+    private void UpdatePlayerListUI()
     {
-        // On cree l objet dans le container
-        GameObject newTag = Instantiate(playerTagPrefab, contentContainer);
-        
-        // On recupere le texte dans lenfant du prefab pour changer le nom
-        // Methode : GetComponentInChildren cherche le premier TMP trouve
-        TextMeshProUGUI textComp = newTag.GetComponentInChildren<TextMeshProUGUI>();
-        
-        if (textComp != null)
+<<<<<<< Updated upstream
+        if (GameManager.Instance.Players.Count == 0)
         {
-            textComp.text = playerName;
+            playerListDisplay.text = "Aucun joueur";
+            return;
+=======
+        GameObject newTag = Instantiate(playerTagPrefab, contentContainer);
+
+        // On delegue la responsabilite totale au script du Prefab
+        PlayerTag tagScript = newTag.GetComponent<PlayerTag>();
+        if (tagScript != null)
+        {
+            tagScript.Setup(playerName, this);
+>>>>>>> Stashed changes
         }
 
-        instantiatedTags.Add(newTag);
+        // Le caractere \n cree un saut de ligne pour l affichage vertical
+        playerListDisplay.text = "Joueurs inscrits :\n- " + string.Join("\n- ", GameManager.Instance.Players);
+    }
+
+    public void RemovePlayer(string playerName, GameObject tagVisual)
+    {
+        if (GameManager.Instance.Players.Contains(playerName))
+        {
+            GameManager.Instance.Players.Remove(playerName);
+        }
+
+        if (instantiatedTags.Contains(tagVisual))
+        {
+            instantiatedTags.Remove(tagVisual);
+        }
+
+        Destroy(tagVisual);
     }
 
     public void StartGame()
     {
+<<<<<<< Updated upstream
+        if (GameManager.Instance.Players.Count >= 2 && GameManager.Instance.RawQuestions.Count > 0)
+=======
+        Screen.orientation = ScreenOrientation.LandscapeLeft;
+
         if (GameManager.Instance.Players.Count >= 2)
+>>>>>>> Stashed changes
         {
             SceneManager.LoadScene("GameScene");
+        }
+        else
+        {
+            Debug.LogWarning("Il faut au minimum 2 joueurs pour lancer la partie.");
         }
     }
 }

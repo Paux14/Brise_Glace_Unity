@@ -1,17 +1,12 @@
 using UnityEngine;
-using UnityEngine.UI; // Necessaire pour manipuler le composant Image
 using TMPro;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 public class GameController : MonoBehaviour
 {
-    [Header("References UI")]
-    [SerializeField] private TextMeshProUGUI questionText;
-    [SerializeField] private Image backgroundImage; // Glisser l image du fond ici
-
-    [Header("Couleurs des Categories")]
-    [SerializeField] private Color colorAnecdote = Color.blue;
-    [SerializeField] private Color colorChallenge = Color.green;
-    [SerializeField] private Color colorDefault = Color.gray;
+    [SerializeField] private TextMeshProUGUI questionDisplay;
 
     private void Start()
     {
@@ -22,38 +17,30 @@ public class GameController : MonoBehaviour
     {
         if (GameManager.Instance.RawQuestions.Count == 0) return;
 
-        // 1. Tirage de la ligne brute (ex: "challenge;Fais un duel avec {joueur}")
-        int index = Random.Range(0, GameManager.Instance.RawQuestions.Count);
-        string rawLine = GameManager.Instance.RawQuestions[index];
+        int randomIndex = Random.Range(0, GameManager.Instance.RawQuestions.Count);
+        string selectedQuestion = GameManager.Instance.RawQuestions[randomIndex];
 
-        // 2. Separation du prefixe et de la question
-        // On separe la chaine au premier caractere ';' rencontre
-        string[] parts = rawLine.Split(';');
+        string formattedQuestion = ParseQuestionTags(selectedQuestion);
 
-        if (parts.Length >= 2)
-        {
-            string category = parts[0].ToLower().Trim();
-            string rawQuestion = parts[1];
-
-            // 3. Changement de couleur selon le prefixe
-            ApplyCategoryColor(category);
-
-            // 4. Traitement des balises {joueur} sur le texte uniquement
-            questionText.text = GameManager.Instance.GetProcessedQuestion(rawQuestion);
-        }
-        else
-        {
-            // Cas de secours si la ligne n a pas de prefixe ou de ';'
-            backgroundImage.color = colorDefault;
-            questionText.text = GameManager.Instance.GetProcessedQuestion(rawLine);
-        }
+        questionDisplay.text = formattedQuestion;
     }
 
-    private void ApplyCategoryColor(string category)
+    private string ParseQuestionTags(string rawText)
     {
-        switch (category)
+        string result = rawText;
+
+        List<string> shuffledPlayers = GameManager.Instance.Players.OrderBy(x => Random.value).ToList();
+        int playerIndex = 0;
+
+        Regex regex = new Regex(Regex.Escape("{Joueur}"));
+
+        while (result.Contains("{Joueur}") && playerIndex < shuffledPlayers.Count)
         {
-            case "anecdote":
+<<<<<<< Updated upstream
+            result = regex.Replace(result, shuffledPlayers[playerIndex], 1);
+            playerIndex++;
+=======
+            case "question":
                 backgroundImage.color = colorAnecdote;
                 break;
             case "challenge":
@@ -65,6 +52,9 @@ public class GameController : MonoBehaviour
             default:
                 backgroundImage.color = colorDefault;
                 break;
+>>>>>>> Stashed changes
         }
+
+        return result;
     }
 }
